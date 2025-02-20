@@ -28,12 +28,17 @@ public class DodgeBall extends GraphicsProgram implements ActionListener {
 	public static final int WINDOW_WIDTH = 300;
 	
 	private int numTimes;
+	private GLabel label;
+	private int enemiesKilled;
 	
 	public void run() {
+		enemiesKilled = 0;
 		rgen = RandomGenerator.getInstance();
 		balls = new ArrayList<GOval>();
 		enemies = new ArrayList<GRect>();
 		numTimes = 0;
+		label  = new GLabel("Enemies defeated: 0", WINDOW_WIDTH/3, 10);
+		add(label);
 		
 		text = new GLabel(""+enemies.size(), 0, WINDOW_HEIGHT);
 		add(text);
@@ -48,6 +53,7 @@ public class DodgeBall extends GraphicsProgram implements ActionListener {
 		numTimes++;
 		moveAllBallsOnce();
 		moveAllEnemiesOnce();
+		label.setLabel("Enemies defeated: " + enemiesKilled);
 		
 		if(numTimes % 40 == 0) {
 		    addAnEnemy();
@@ -91,9 +97,24 @@ public class DodgeBall extends GraphicsProgram implements ActionListener {
 	}
 
 	private void moveAllBallsOnce() {
-		for(GOval ball:balls) {
-			ball.move(SPEED, 0);
-		}
+		ArrayList<GRect> toRemove = new ArrayList<>();
+
+	    for (GOval ball : balls) {
+	        ball.move(SPEED, 0);
+
+	        double checkX = ball.getX() + SIZE;
+	        double checkY = ball.getY() + SIZE / 2;
+	        GObject object = getElementAt(checkX, checkY);
+
+	        if (object instanceof GRect) {
+	            GRect enemy = (GRect) object;
+	            remove(enemy);
+	            toRemove.add(enemy);
+	            enemiesKilled++;
+	        }
+	    }
+
+	    enemies.removeAll(toRemove);
 	}
 	
 	private void moveAllEnemiesOnce() {
